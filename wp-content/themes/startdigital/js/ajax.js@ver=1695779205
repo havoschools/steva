@@ -1,0 +1,86 @@
+const query = {
+	search: '',
+	category: 'all',
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	if (
+		document.querySelector('.blog-posts') ||
+		document.querySelector('[data-search-container]')
+	) {
+		const search = document.querySelector('[data-search]');
+
+		if( search ) {
+			query.search = search.querySelector('input[name="s"]').value;
+		}
+		
+		fetchPosts();
+		
+		search?.addEventListener('submit', (e) => {
+			e.preventDefault()
+			const value = e.target.querySelector('input[name="s"]').value
+			query.search = value
+			fetchPosts()
+		});
+
+		const category = document.querySelector('[data-category]')
+		category?.addEventListener('change', (e) => {
+			const value = e.target.value
+			query.category = value
+			fetchPosts()
+		});
+	}
+})
+
+/**
+ * Fetch the posts
+ */
+function fetchPosts() {
+	const container =
+		document.querySelector('.blog-posts') ??
+		document.querySelector('[data-search-container]')
+
+	// Add 'loading' state
+	container.innerHTML = `<span class="mx-auto text-center md:col-span-2 lg:col-span-3">Loading...</span>`;
+
+	let isSearch = 0;
+
+	if( document.querySelector('[data-search-container]') ) {
+		isSearch = 1;
+	}
+
+	jQuery.ajax({
+		type: 'get',
+		dataType: 'json',
+		url: sd_ajax.ajax_url,
+		data: {
+			action: 'sd_fetch_posts',
+			s: query.search,
+			category: query.category,
+			is_search: isSearch
+		},
+		success: ({ success, data }) => {
+			if (!success) {
+				container.innerHTML = `<span class="mx-auto text-center md:col-span-2 lg:col-span-3">Sorry, nothing matched this search.</span>`
+				return
+			}
+
+			// Add the new posts to the container
+			container.innerHTML = data.posts
+		},
+	})
+}
+
+(function($) {
+	$(document).ready( function() {
+		$(document).on( 'click', '.collapsible-sections-field', function(e) {
+			$('.gfield_signature_container').each( function() {
+				var $this = $(this);
+				
+				setTimeout( function() {
+					gformSignatureResize( $this ); 
+				}, 200 );
+			});
+		});
+	});
+})(jQuery);
